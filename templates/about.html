@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+{% block container %}
+    <div class="span6">
+      <h1>How it works</h1>
+      <p>Number Creator uses a simple, slightly randomized, breadth-first search over the
+        tree of all combinations of constants and mathematical operations, looking for results
+        within .1% of the target. Number Creator then uses a dynamic backoff algorithm to
+        increase the tolerance if a result isn't found soon enough.</p>
+    </div>
+    
+{% endblock %}

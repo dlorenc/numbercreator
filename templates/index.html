@@ -6,12 +6,13 @@
       <p>Make your boring numbers look cooler using things like e and pi!<br> Try it out.</p>
       <form action="/" method="POST">
         <label>Boring number</label>
-        <input name="number" type="text" value="{%if number%}{{number}}{%else%}72.03{%endif%}">
+        <input name="number" type="text" value="{{number}}">
         <button type="submit" class="btn">Make my number awesome!</button>
       </form>
       {%if output%}
       <h3>Result</h3>
       <p>{{output}} = {{result}}</p>
+      <p>Keep trying for more results!</p>
       {%endif%}
       {%if error%}
       <p>{{error}}</p>

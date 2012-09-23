@@ -3,18 +3,28 @@ import math
 from operator import *
 from sympy import simplify
 import random
-from collections import deque
+from collections import deque, namedtuple
 
 
-CONSTANTS = {
-    u'π': math.pi,
-    u'e': math.e,
-    u'g': 9.80665,
-    u'ϕ': 1.61803398875,
-    u'c': 299792458.0
-}
+Constant = namedtuple('Constant', ['symbol', 'value', 'fake_symbol'])
+CONSTANTS = (
+    Constant(u'π', math.pi, 'p'),
+    Constant(u'e', math.e, 'e'),
+    Constant(u'g', 9.80665, 'g'),
+    Constant(u'ϕ', 1.61803398875, 'f'),
+    Constant(u'c', 299792458.0, 'c'),
+)
 
-OPERATORS = (mul, div, add, sub, pow)
+Operator = namedtuple('Operator', ['operator', 'symbol'])
+OPERATORS = (
+    Operator(operator=mul, symbol="*"),
+    Operator(operator=div, symbol="/"),
+    Operator(operator=add, symbol="+"),
+    Operator(operator=sub, symbol="-"),
+    Operator(operator=pow, symbol="^"),
+)
+
+Step = namedtuple('Step', ['value', 'operator'])
 
 
 def rewrite_number(target, tolerance=0.001, max_tries=10000):
@@ -24,27 +34,32 @@ def rewrite_number(target, tolerance=0.001, max_tries=10000):
     but will increase if max_tries is hit.
     """
     exponent = 0
-    while abs(target) > max(CONSTANTS.values()):
+    while abs(target) > max([c.value for c in CONSTANTS]):
         target /= 100.0
         exponent += 2
-    while abs(target) < 1 / max(CONSTANTS.values()):
+    while abs(target) < min([c.value for c in CONSTANTS]):
         target *= 100.0
         exponent -= 2
-
     combination = find_combination(target, tolerance, max_tries)
-    result = eval_attempt(combination) * (10 ** exponent)
+    result = eval_steps(combination) * (10 ** exponent)
     output = print_combination(combination, exponent)
+    for constant in CONSTANTS:
+        output = output.replace(constant.symbol, constant.fake_symbol)
     try:
-        return simplify(output), result
+        output = str(simplify(output))
+        for constant in CONSTANTS:
+            output = output.replace(constant.fake_symbol, constant.symbol)
     except:
-        return output, result
+        print 'Unable to simplify %s' % output
+    output = output.replace('**', '^')
+    return output, result
 
 
-def eval_attempt(attempt_list):
+def eval_steps(attempt_list):
     current = 1
     try:
         for pair in attempt_list:
-            current = pair[1](current, pair[0][1])
+            current = pair.operator.operator(current, pair.value.value)
     except:
         current = 0
     return current
@@ -55,23 +70,23 @@ def find_combination(target, tolerance, max_tries):
     queue = deque()
     num_tried = 0
     closest = ([], 1)
-    for name, constant in random.sample(CONSTANTS.items(), len(CONSTANTS)):
-        queue.append([((name, constant), mul)])
+    for constant in random.sample(CONSTANTS, len(CONSTANTS)):
+        queue.append([Step(constant, Operator(mul, '*'))])
 
     while True:
         while queue and num_tried <= max_tries:
             num_tried += 1
             attempt = queue.popleft()
-            result = eval_attempt(attempt)
+            result = eval_steps(attempt)
 
             difference = abs((result - target) / target)
             if difference < closest[1]:
                 closest = (attempt, difference)
             if difference < tolerance:
                 break
-            for name, constant in random.sample(CONSTANTS.items(), len(CONSTANTS)):
+            for constant in random.sample(CONSTANTS, len(CONSTANTS)):
                 for o in random.sample(OPERATORS, len(OPERATORS)):
-                    queue.append(attempt + [((name, constant), o)])
+                    queue.append(attempt + [Step(constant, o)])
         if num_tried >= max_tries:
             num_tried = 0
             tolerance *= 10
@@ -81,12 +96,10 @@ def find_combination(target, tolerance, max_tries):
 
 
 def print_combination(combo, exponent):
-    pmap = {mul: "*", div: "/", add: "+", sub: "-", pow: "^"}
-    output = "%s" % combo.pop(0)[0][0]
+    output = "%s" % combo.pop(0).value.symbol
     for step in combo:
-        output = "(%s %s %s)" % (output, pmap[step[1]], step[0][0])
+        output = "(%s %s %s)" % (output, step.operator.symbol, step.value.symbol)
 
     if exponent:
-        exp_symbol = '^' if '^' in output else '**'
-        output = "(%s * 10 %s %s)" % (output, exp_symbol, exponent)
+        output = "(%s * 10 ^ %s)" % (output, exponent)
     return output
