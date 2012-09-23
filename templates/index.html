@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}Index{% endblock %}
+{% block container %}
+    <div class="span6">
+      <h1>Number Creator</h1>
+      <p>Make your boring numbers look cooler using things like e and pi!<br> Try it out.</p>
+      <form action="/" method="POST">
+        <label>Boring number</label>
+        <input name="number" type="text" value="{%if number%} {{number}} {%else%} 72.03 {%endif%}">
+        <button type="submit" class="btn">Make my number awesome!</button>
+      </form>
+      {%if output%}
+      <h3>Result</h3>
+      <p>{{output}} = {{result}}</p>
+      {%endif%}
+      {%if error%}
+      <p>{{error}}</p>
+      {%endif%}
+    </div>
+    <div class="span4">
+      <h2>Constants Used</h2>
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>Constant</th>
+            <th>Name</th>
+            <th>Value</th>
+          </tr>
+        </thead>
+        <tr>
+          <td>π</td>
+          <td><a href="http://en.wikipedia.org/wiki/Pi">Pi</a></td>
+          <td>3.141592653589793</td>
+        </tr>
+        <tr>
+          <td>e</td>
+          <td><a href="http://en.wikipedia.org/wiki/E_(mathematical_constant)">e</a></td>
+          <td>2.718281828459045</td>
+        </tr>
+        <tr>
+          <td>g</td>
+          <td><a href="http://en.wikipedia.org/wiki/Standard_gravity">Standard gravity</a></td>
+          <td>9.80665</td>
+        </tr>
+        <tr>
+          <td>ϕ</td>
+          <td><a href="http://en.wikipedia.org/wiki/Golden_ratio">Phi</a></td>
+          <td>1.61803398875</td>
+        </tr>
+        <tr>
+          <td>c</td>
+          <td><a href="http://en.wikipedia.org/wiki/Speed_of_light">Speed of light</a></td>
+          <td>299792458</td>
+        </tr>
+      </table>
+    </div>
+{% endblock %}
