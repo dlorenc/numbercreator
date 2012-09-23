@@ -24,10 +24,10 @@ def rewrite_number(target, tolerance=0.001, max_tries=10000):
     but will increase if max_tries is hit.
     """
     exponent = 0
-    while abs(target) > 100:
+    while abs(target) > max(CONSTANTS.values()):
         target /= 100.0
         exponent += 2
-    while abs(target) < 0.001:
+    while abs(target) < 1 / max(CONSTANTS.values()):
         target *= 100.0
         exponent -= 2
 
