@@ -17,15 +17,23 @@ CONSTANTS = {
 OPERATORS = (mul, div, add, sub, pow)
 
 
-def rewrite_number(target, tolerance=0.001, max_tries=100000):
+def rewrite_number(target, tolerance=0.001, max_tries=10000):
     """
     Attempts to rewrite the target number in terms of the CONSTANTS
     and OPERATORS.  Tries to find a result within tolerance percent,
     but will increase if max_tries is hit.
     """
+    exponent = 0
+    while abs(target) > 100:
+        target /= 100.0
+        exponent += 2
+    while abs(target) < 0.001:
+        target *= 100.0
+        exponent -= 2
+
     combination = find_combination(target, tolerance, max_tries)
-    result = eval_attempt(combination)
-    output = print_combination(combination)
+    result = eval_attempt(combination) * (10 ** exponent)
+    output = print_combination(combination, exponent)
     try:
         return simplify(output), result
     except:
@@ -72,9 +80,13 @@ def find_combination(target, tolerance, max_tries):
     return closest[0]
 
 
-def print_combination(combo):
+def print_combination(combo, exponent):
     pmap = {mul: "*", div: "/", add: "+", sub: "-", pow: "^"}
     output = "%s" % combo.pop(0)[0][0]
     for step in combo:
         output = "(%s %s %s)" % (output, pmap[step[1]], step[0][0])
+
+    if exponent:
+        exp_symbol = '^' if '^' in output else '**'
+        output = "(%s * 10 %s %s)" % (output, exp_symbol, exponent)
     return output
