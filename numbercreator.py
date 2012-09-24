@@ -10,7 +10,7 @@ Constant = namedtuple('Constant', ['symbol', 'value', 'fake_symbol'])
 CONSTANTS = (
     Constant(u'π', math.pi, 'p'),
     Constant(u'e', math.e, 'e'),
-    Constant(u'g', 9.80665, 'g'),
+    #Constant(u'g', 9.80665, 'g'),
     Constant(u'ϕ', 1.61803398875, 'f'),
     Constant(u'c', 299792458.0, 'c'),
 )
@@ -84,9 +84,10 @@ def find_combination(target, tolerance, max_tries):
                 closest = (attempt, difference)
             if difference < tolerance:
                 break
-            for constant in random.sample(CONSTANTS, len(CONSTANTS)):
-                for o in random.sample(OPERATORS, len(OPERATORS)):
-                    queue.append(attempt + [Step(constant, o)])
+            if len(attempt) <= 4:
+                for constant in random.sample(CONSTANTS, len(CONSTANTS)):
+                    for o in random.sample(OPERATORS, len(OPERATORS)):
+                        queue.append(attempt + [Step(constant, o)])
         if num_tried >= max_tries:
             num_tried = 0
             tolerance *= 10
