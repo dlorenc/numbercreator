@@ -33,6 +33,12 @@ def rewrite_number(target, tolerance=0.001, max_tries=10000):
     and OPERATORS.  Tries to find a result within tolerance percent,
     but will increase if max_tries is hit.
     """
+    if target < 0:
+        negative = True
+        target = -target
+    else:
+        negative = False
+
     exponent = 0
     while abs(target) > max([c.value for c in CONSTANTS]):
         target /= 100.0
@@ -42,7 +48,7 @@ def rewrite_number(target, tolerance=0.001, max_tries=10000):
         exponent -= 2
     combination = find_combination(target, tolerance, max_tries)
     result = eval_steps(combination) * (10 ** exponent)
-    output = print_combination(combination, exponent)
+    output = print_combination(combination, exponent, negative)
     for constant in CONSTANTS:
         output = output.replace(constant.symbol, constant.fake_symbol)
     try:
@@ -96,11 +102,13 @@ def find_combination(target, tolerance, max_tries):
     return closest[0]
 
 
-def print_combination(combo, exponent):
+def print_combination(combo, exponent, negative):
     output = "%s" % combo.pop(0).value.symbol
     for step in combo:
         output = "(%s %s %s)" % (output, step.operator.symbol, step.value.symbol)
 
     if exponent:
         output = "(%s * 10 ^ %s)" % (output, exponent)
+    if negative:
+        output = "-%s" % output
     return output
