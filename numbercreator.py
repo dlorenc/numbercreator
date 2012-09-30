@@ -42,13 +42,13 @@ def rewrite_number(target, tolerance=0.001, max_tries=10000):
     while target > max([c.value for c in CONSTANTS]):
         target /= 100.0
         exponent += 2
-    while abs(target) < min([c.value for c in CONSTANTS]):
+    while target < min([c.value for c in CONSTANTS]):
         target *= 100.0
         exponent -= 2
     combination = find_combination(target, tolerance, max_tries)
     result = eval_steps(combination) * (10 ** exponent)
     result *= -1 if negative else 1
-    output = print_combination(combination, exponent)
+    output = print_combination(combination, exponent, negative)
     for constant in CONSTANTS:
         output = output.replace(constant.symbol, constant.fake_symbol)
     try:
@@ -76,6 +76,9 @@ def find_combination(target, tolerance, max_tries):
     queue = deque()
     num_tried = 0
     closest = ([], 1)
+    for constant in random.sample(CONSTANTS, len(CONSTANTS)):
+        queue.append([Step(constant, Operator(mul, '*'))])
+
     while True:
         while queue and num_tried <= max_tries:
             num_tried += 1
@@ -87,10 +90,10 @@ def find_combination(target, tolerance, max_tries):
                 closest = (attempt, difference)
             if difference < tolerance:
                 break
-            for constant in random.sample(CONSTANTS, len(CONSTANTS)):
-                for o in random.sample(OPERATORS, len(OPERATORS)):
-                    queue.append(attempt + [Step(constant, o)])
-        if num_tried >= max_tries:
+            if len(attempt) <= 4:
+                for constant in random.sample(CONSTANTS, len(CONSTANTS)):
+                    for o in random.sample(OPERATORS, len(OPERATORS)):
+                        queue.append(attempt + [Step(constant, o)])
             num_tried = 0
             tolerance *= 10
         else:
