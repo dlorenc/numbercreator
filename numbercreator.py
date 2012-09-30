@@ -34,7 +34,12 @@ def rewrite_number(target, tolerance=0.001, max_tries=10000):
     but will increase if max_tries is hit.
     """
     exponent = 0
-    while abs(target) > max([c.value for c in CONSTANTS]):
+    if target < 0:
+        negative = True
+        target = -target
+    else:
+        negative = False
+    while target > max([c.value for c in CONSTANTS]):
         target /= 100.0
         exponent += 2
     while abs(target) < min([c.value for c in CONSTANTS]):
@@ -42,6 +47,7 @@ def rewrite_number(target, tolerance=0.001, max_tries=10000):
         exponent -= 2
     combination = find_combination(target, tolerance, max_tries)
     result = eval_steps(combination) * (10 ** exponent)
+    result *= -1 if negative else 1
     output = print_combination(combination, exponent)
     for constant in CONSTANTS:
         output = output.replace(constant.symbol, constant.fake_symbol)
@@ -70,9 +76,6 @@ def find_combination(target, tolerance, max_tries):
     queue = deque()
     num_tried = 0
     closest = ([], 1)
-    for constant in random.sample(CONSTANTS, len(CONSTANTS)):
-        queue.append([Step(constant, Operator(mul, '*'))])
-
     while True:
         while queue and num_tried <= max_tries:
             num_tried += 1
@@ -84,10 +87,9 @@ def find_combination(target, tolerance, max_tries):
                 closest = (attempt, difference)
             if difference < tolerance:
                 break
-            if len(attempt) <= 4:
-                for constant in random.sample(CONSTANTS, len(CONSTANTS)):
-                    for o in random.sample(OPERATORS, len(OPERATORS)):
-                        queue.append(attempt + [Step(constant, o)])
+            for constant in random.sample(CONSTANTS, len(CONSTANTS)):
+                for o in random.sample(OPERATORS, len(OPERATORS)):
+                    queue.append(attempt + [Step(constant, o)])
         if num_tried >= max_tries:
             num_tried = 0
             tolerance *= 10
@@ -96,11 +98,13 @@ def find_combination(target, tolerance, max_tries):
     return closest[0]
 
 
-def print_combination(combo, exponent):
+def print_combination(combo, exponent, negative):
     output = "%s" % combo.pop(0).value.symbol
     for step in combo:
         output = "(%s %s %s)" % (output, step.operator.symbol, step.value.symbol)
 
     if exponent:
         output = "(%s * 10 ^ %s)" % (output, exponent)
+    if negative:
+        output = "-%s" % output
     return output
